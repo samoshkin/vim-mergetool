@@ -48,7 +48,6 @@ endfunction "}}}
 " - mergetool program exit code, otherwise
 function! mergetool#stop() " {{{
   call s:ensure_in_mergemode()
-  call s:goto_win_with_merged_file()
 
   while 1
     let choice = input('Was the merge successful? (y)es, (n)o, (c)ancel: ')
@@ -62,6 +61,8 @@ function! mergetool#stop() " {{{
     return
   endif
 
+  " Load buffer with merged file
+  execute "buffer " . s:mergedfile_bufnr
 
   if s:run_as_git_mergetool
     " When run as 'git mergetool', and merge was unsuccessful
@@ -126,6 +127,10 @@ function! mergetool#set_layout(layout) " {{{
         \ 'L': 'LOCAL' }
   let is_first_split = 1
 
+  if s:goto_win_with_merged_file()
+    let l:_winstate = winsaveview()
+  endif
+
   " For each char in layout, open split window and load revision
   for labbr in split(a:layout, '\zs')
     vert rightbelow split
@@ -146,7 +151,9 @@ function! mergetool#set_layout(layout) " {{{
 
   let s:current_layout = a:layout
   windo diffthis
-  call s:goto_win_with_merged_file()
+  if s:goto_win_with_merged_file() && exists('l:_winstate')
+    call winrestview(l:_winstate)
+  endif
 endfunction " }}}
 
 " Toggles between given and default layout
@@ -271,8 +278,11 @@ function! s:restore_merged_file_contents()
 endfunction
 
 " Find window with merged file and focus it
+" Tell if window was found
 function! s:goto_win_with_merged_file()
+  let l:winnr = bufwinnr(s:mergedfile_bufnr)
   execute bufwinnr(s:mergedfile_bufnr) "wincmd w"
+  return l:winnr != -1
 endfunction
 
 function! s:ensure_in_mergemode()

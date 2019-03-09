@@ -5,7 +5,7 @@ let g:mergetool_prefer_revision = get(g:, 'mergetool_prefer_revision', 'local')
 
 " {{{ Public exports
 
-let s:in_merge_mode = 0
+let g:mergetool_in_merge_mode = 0
 let s:run_as_git_mergetool = 0
 let s:current_layout = ''
 
@@ -33,7 +33,7 @@ function! mergetool#start() "{{{
     tab split
   endif
 
-  let s:in_merge_mode = 1
+  let g:mergetool_in_merge_mode = 1
 
   call mergetool#prefer_revision(g:mergetool_prefer_revision)
   call mergetool#set_layout(g:mergetool_layout)
@@ -88,14 +88,14 @@ function! mergetool#stop() " {{{
       write
     endif
 
-    let s:in_merge_mode = 0
+    let g:mergetool_in_merge_mode = 0
     tabclose
   endif
 endfunction " }}}
 
 
 function! mergetool#toggle() " {{{
-  if s:in_merge_mode
+  if g:mergetool_in_merge_mode
     call mergetool#stop()
   else
     call mergetool#start()
@@ -128,7 +128,7 @@ function! mergetool#set_layout(layout) " {{{
   let is_first_split = 1
 
   if s:goto_win_with_merged_file()
-    let l:_winstate = winsaveview()
+    " let l:_winstate = winsaveview()
   endif
 
   " For each char in layout, open split window and load revision
@@ -152,7 +152,7 @@ function! mergetool#set_layout(layout) " {{{
   let s:current_layout = a:layout
   windo diffthis
   if s:goto_win_with_merged_file() && exists('l:_winstate')
-    call winrestview(l:_winstate)
+    " call winrestview(l:_winstate)
   endif
 endfunction " }}}
 
@@ -286,7 +286,7 @@ function! s:goto_win_with_merged_file()
 endfunction
 
 function! s:ensure_in_mergemode()
-  if !s:in_merge_mode
+  if !g:mergetool_in_merge_mode
     throw "Not in a merge mode"
   endif
 endfunction

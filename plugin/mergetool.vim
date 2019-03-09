@@ -5,6 +5,8 @@ if exists("g:loaded_mergetool")
 endif
 let g:loaded_mergetool = 1
 
+let g:mergetool_in_merge_mode = 0
+
 command! -nargs=0 MergetoolStart call mergetool#start()
 command! -nargs=0 MergetoolStop call mergetool#stop()
 command! -nargs=0 MergetoolToggle call mergetool#toggle()

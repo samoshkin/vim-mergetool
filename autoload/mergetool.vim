@@ -48,6 +48,7 @@ function! mergetool#stop() " {{{
       break
     endif
   endwhile
+  redraw!
 
   if choice ==? 'c'
     return

@@ -6,7 +6,7 @@ let g:mergetool_prefer_revision = get(g:, 'mergetool_prefer_revision', 'local')
 
 let s:in_merge_mode = 0
 
-function! mergetool#start()
+function! mergetool#start() "{{{
   " If file does not have conflict markers, it's a wrong target for mergetool
   if !s:has_conflict_markers()
     echohl WarningMsg
@@ -29,8 +29,7 @@ function! mergetool#start()
 
   call mergetool#prefer_revision(g:mergetool_prefer_revision)
   call mergetool#set_layout(g:mergetool_layout)
-endfunction
-
+endfunction "}}}
 
 " Stop mergetool effect depends on:
 " - when run as 'git mergetool'
@@ -39,7 +38,7 @@ endfunction
 " When run as 'git mergetool', to decide merge result Git would check:
 " - whether file was changed, if 'mergetool.trustExitCode' == false
 " - mergetool program exit code, otherwise
-function! mergetool#stop()
+function! mergetool#stop() " {{{
   call s:ensure_in_mergemode()
   call s:goto_win_with_merged_file()
 
@@ -74,7 +73,7 @@ function! mergetool#stop()
     " and close tab we've opened on start
 
     if choice ==? 'n'
-      call s:restore_merged_file_contents()
+      silent call s:restore_merged_file_contents()
     else
       write
     endif
@@ -82,16 +81,16 @@ function! mergetool#stop()
     let s:in_merge_mode = 0
     tabclose
   endif
-endfunction
+endfunction " }}}
 
 
-function! mergetool#toggle()
+function! mergetool#toggle() " {{{
   if s:in_merge_mode
     call mergetool#stop()
   else
     call mergetool#start()
   endif
-endfunction
+endfunction " }}}
 
 " Opens set of windows with merged file and various file revisions
 " Supported layout options:
@@ -102,7 +101,7 @@ endfunction
 " - L, 'LOCAL' revision as passed by Git, or revision for unmerged file obtained from index stage :2:<file>
 " - b, revision obtained by removing conflict markers and picking up 'common' side
 " - B, 'BASE' revision as passed by Git, or revision for unmerged file obtained from index stage :1:<file>
-function! mergetool#set_layout(layout)
+function! mergetool#set_layout(layout) " {{{
   call s:ensure_in_mergemode()
 
   if a:layout =~? '[^rlbw]'
@@ -133,21 +132,21 @@ function! mergetool#set_layout(layout)
       continue
     endif
 
-    call s:load_revision(abbrevs[labbr])
+    silent call s:load_revision(abbrevs[labbr])
   endfor
 
   windo diffthis
-endfunction
+endfunction " }}}
 
 " Takes merged file with conflict markers, and removes them
 " by picking up side of the conflicts: local, remote, base
-function! mergetool#prefer_revision(revision)
+function! mergetool#prefer_revision(revision) " {{{
   call s:ensure_in_mergemode()
 
-  call s:goto_win_with_merged_file()
-  call s:restore_merged_file_contents()
-  call s:remove_conflict_markers(a:revision)
-endfunction
+  silent call s:goto_win_with_merged_file()
+  silent call s:restore_merged_file_contents()
+  silent call s:remove_conflict_markers(a:revision)
+endfunction " }}}
 
 " }}}
 
@@ -166,7 +165,7 @@ function! s:load_revision(revision)
     " Open new buffer, put merged file contents wiht conflict markers,
     " remove markers and pick up right revision
     enew
-    silent put = s:mergedfile_contents | 1delete
+    put = s:mergedfile_contents | 1delete
     call s:remove_conflict_markers(a:revision)
     setlocal nomodifiable readonly buftype=nofile bufhidden=delete nobuflisted
     execute "file " . a:revision
@@ -202,7 +201,7 @@ function! s:load_revision_from_index(revision)
         \ 'LOCAL': 2,
         \ 'REMOTE': 3 }
   execute printf("read !git cat-file -p :%d:%s", index[a:revision], s:mergedfile_name)
-  1delete
+  silent 1delete
 endfunction
 
 " Removes conflict markers from current file, leaving one side of the conflict

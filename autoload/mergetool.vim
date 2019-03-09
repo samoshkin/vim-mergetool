@@ -1,10 +1,13 @@
 
+" Configuration settings
 let g:mergetool_layout = get(g:, 'mergetool_layout', 'wr')
 let g:mergetool_prefer_revision = get(g:, 'mergetool_prefer_revision', 'local')
 
 " {{{ Public exports
 
 let s:in_merge_mode = 0
+let s:run_as_git_mergetool = 0
+let s:current_layout = ''
 
 function! mergetool#start() "{{{
   " If file does not have conflict markers, it's a wrong target for mergetool
@@ -20,8 +23,13 @@ function! mergetool#start() "{{{
   let s:mergedfile_name = expand('%')
   let s:mergedfile_contents = system('cat ' . expand('%'))
 
+  " Detect if we're run as 'git mergetool' by presence of BASE|LOCAL|REMOTE buf names
+  let s:run_as_git_mergetool = bufnr('BASE') != -1 &&
+        \ bufnr('LOCAL') != -1 &&
+        \ bufnr('REMOTE') != -1
+
   " Open in new tab, do not break existing layout
-  if !s:is_run_as_git_mergetool()
+  if !s:run_as_git_mergetool
     tab split
   endif
 
@@ -55,7 +63,7 @@ function! mergetool#stop() " {{{
   endif
 
 
-  if s:is_run_as_git_mergetool()
+  if s:run_as_git_mergetool
     " When run as 'git mergetool', and merge was unsuccessful
     " discard local changes and do not write buffer to disk
     " also exit with nonzero code
@@ -136,9 +144,19 @@ function! mergetool#set_layout(layout) " {{{
     silent call s:load_revision(abbrevs[labbr])
   endfor
 
+  let s:current_layout = a:layout
   windo diffthis
   call s:goto_win_with_merged_file()
 endfunction " }}}
+
+" Toggles between given and default layout
+function mergetool#toggle_layout(layout)
+  if s:current_layout !=# a:layout
+    call mergetool#set_layout(a:layout)
+  else
+    call mergetool#set_layout(g:mergetool_layout)
+  endif
+endfunction
 
 " Takes merged file with conflict markers, and removes them
 " by picking up side of the conflicts: local, remote, base
@@ -175,15 +193,15 @@ function! s:load_revision(revision)
 
     " First, if run as 'git mergetool', try find buffer by name: 'BASE|REMOTE|LOCAL'
     " Otherwise, load revision from Git index
-    try
+    if s:run_as_git_mergetool
       execute "buffer " . a:revision
       setlocal nomodifiable readonly
-    catch
+    else
       enew
       call s:load_revision_from_index(a:revision)
       setlocal nomodifiable readonly buftype=nofile bufhidden=delete nobuflisted
       execute "file " . a:revision
-    endtry
+    endif
   else
     throw "Not supported revision: " . a:revision
   endif
@@ -245,14 +263,6 @@ function! s:has_conflict_markers()
         \ search(s:markers['theirs']) != 0 &&
         \ search(s:markers['base']) != 0 &&
         \ search(s:markers['delimiter']) != 0
-endfunction
-
-" Tells if we're currently run as 'git mergetool'
-" Detects existence of 'BASE|LOCAL|REMOTE' buffer names
-function! s:is_run_as_git_mergetool()
-  return bufnr('BASE') != -1 &&
-        \ bufnr('LOCAL') != -1 &&
-        \ bufnr('REMOTE') != -1
 endfunction
 
 " Discard all changes in buffer, and fill it with original merged file contents

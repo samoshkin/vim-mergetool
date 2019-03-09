@@ -136,6 +136,7 @@ function! mergetool#set_layout(layout) " {{{
   endfor
 
   windo diffthis
+  call s:goto_win_with_merged_file()
 endfunction " }}}
 
 " Takes merged file with conflict markers, and removes them

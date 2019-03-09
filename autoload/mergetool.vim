@@ -6,6 +6,7 @@ let g:mergetool_prefer_revision = get(g:, 'mergetool_prefer_revision', 'local')
 " {{{ Public exports
 
 let g:mergetool_in_merge_mode = 0
+
 let s:run_as_git_mergetool = 0
 let s:current_layout = ''
 
@@ -128,7 +129,7 @@ function! mergetool#set_layout(layout) " {{{
   let is_first_split = 1
 
   if s:goto_win_with_merged_file()
-    " let l:_winstate = winsaveview()
+    let l:_winstate = winsaveview()
   endif
 
   " For each char in layout, open split window and load revision
@@ -152,18 +153,18 @@ function! mergetool#set_layout(layout) " {{{
   let s:current_layout = a:layout
   windo diffthis
   if s:goto_win_with_merged_file() && exists('l:_winstate')
-    " call winrestview(l:_winstate)
+    call winrestview(l:_winstate)
   endif
 endfunction " }}}
 
 " Toggles between given and default layout
-function mergetool#toggle_layout(layout)
+function mergetool#toggle_layout(layout) " {{{
   if s:current_layout !=# a:layout
     call mergetool#set_layout(a:layout)
   else
     call mergetool#set_layout(g:mergetool_layout)
   endif
-endfunction
+endfunction " }}}
 
 " Takes merged file with conflict markers, and removes them
 " by picking up side of the conflicts: local, remote, base
@@ -172,7 +173,9 @@ function! mergetool#prefer_revision(revision) " {{{
 
   silent call s:goto_win_with_merged_file()
   silent call s:restore_merged_file_contents()
-  silent call s:remove_conflict_markers(a:revision)
+  if a:revision !=# 'unmodified'
+    silent call s:remove_conflict_markers(a:revision)
+  endif
 endfunction " }}}
 
 " }}}

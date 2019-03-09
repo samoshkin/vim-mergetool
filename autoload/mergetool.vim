@@ -25,10 +25,10 @@ function! mergetool#start()
     tab split
   endif
 
+  let s:in_merge_mode = 1
+
   call mergetool#prefer_revision(g:mergetool_prefer_revision)
   call mergetool#set_layout(g:mergetool_layout)
-
-  let s:in_merge_mode = 1
 endfunction
 
 
@@ -40,6 +40,7 @@ endfunction
 " - whether file was changed, if 'mergetool.trustExitCode' == false
 " - mergetool program exit code, otherwise
 function! mergetool#stop()
+  call s:ensure_in_mergemode()
   call s:goto_win_with_merged_file()
 
   while 1
@@ -102,6 +103,8 @@ endfunction
 " - b, revision obtained by removing conflict markers and picking up 'common' side
 " - B, 'BASE' revision as passed by Git, or revision for unmerged file obtained from index stage :1:<file>
 function! mergetool#set_layout(layout)
+  call s:ensure_in_mergemode()
+
   if a:layout =~? '[^rlbw]'
     throw "Unknown layout option: " . a:layout
   endif
@@ -139,6 +142,8 @@ endfunction
 " Takes merged file with conflict markers, and removes them
 " by picking up side of the conflicts: local, remote, base
 function! mergetool#prefer_revision(revision)
+  call s:ensure_in_mergemode()
+
   call s:goto_win_with_merged_file()
   call s:restore_merged_file_contents()
   call s:remove_conflict_markers(a:revision)
@@ -257,6 +262,12 @@ endfunction
 " Find window with merged file and focus it
 function! s:goto_win_with_merged_file()
   execute bufwinnr(s:mergedfile_bufnr) "wincmd w"
+endfunction
+
+function! s:ensure_in_mergemode()
+  if !s:in_merge_mode
+    throw "Not in a merge mode"
+  endif
 endfunction
 
 " }}}

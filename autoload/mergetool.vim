@@ -195,7 +195,7 @@ function! s:load_revision(revision)
     " Open new buffer, put merged file contents wiht conflict markers,
     " remove markers and pick up right revision
     enew
-    put = s:mergedfile_contents | 1delete
+    put = s:mergedfile_contents | 1delete _
     call s:remove_conflict_markers(a:revision)
     setlocal nomodifiable readonly buftype=nofile bufhidden=delete nobuflisted
     execute "file " . a:revision
@@ -231,7 +231,7 @@ function! s:load_revision_from_index(revision)
         \ 'LOCAL': 2,
         \ 'REMOTE': 3 }
   execute printf("read !git cat-file -p :%d:%s", index[a:revision], s:mergedfile_name)
-  silent 1delete
+  silent 1delete _
 endfunction
 
 " Removes conflict markers from current file, leaving one side of the conflict
@@ -250,7 +250,7 @@ function! s:remove_conflict_markers(pref_revision)
   " Command removes range of lines from the file
   " g/{start_marker}/, find start of the range by given marker
   " +1,/{end_marker}-1, finds end of the range by given marker and selects contents between markers
-  let delete_pattern = 'g/%s/ +1,/%s/-1 delete'
+  let delete_pattern = 'g/%s/ +1,/%s/-1 delete _'
 
   if a:pref_revision ==# 'base'
     execute printf(delete_pattern, s:markers['ours'], s:markers['base'])
@@ -264,7 +264,7 @@ function! s:remove_conflict_markers(pref_revision)
   endif
 
   " Delete conflict markers itself
-  execute printf('g/%s\|%s\|%s\|%s/d', s:markers['ours'], s:markers['theirs'], s:markers['base'], s:markers['delimiter'])
+  execute printf('g/%s\|%s\|%s\|%s/ delete _', s:markers['ours'], s:markers['theirs'], s:markers['base'], s:markers['delimiter'])
 endfunction
 
 " Tells if file has conflict markers
@@ -277,7 +277,7 @@ endfunction
 
 " Discard all changes in buffer, and fill it with original merged file contents
 function! s:restore_merged_file_contents()
-  %delete | put =s:mergedfile_contents | 1delete
+  %delete _ | put =s:mergedfile_contents | 1delete _
 endfunction
 
 " Find window with merged file and focus it

@@ -13,7 +13,7 @@ command! -nargs=0 MergetoolToggle call mergetool#toggle()
 command! -nargs=1 MergetoolSetLayout call mergetool#set_layout(<f-args>)
 command! -nargs=0 MergetoolPreferLocal call mergetool#prefer_revision('local')
 command! -nargs=0 MergetoolPreferRemote call mergetool#prefer_revision('remote')
-nnoremap <silent> <plug>(MergetoolToggle) :<C-u>call mergetool#toggle()<CR>
+nnoremap <silent> <Plug>(MergetoolToggle) :<C-u>call mergetool#toggle()<CR>
 
 " {{{ Diff exchange
 
@@ -57,6 +57,6 @@ function s:FindWindowOnDir(dir)
 endfunction
 
 " <plug> mappings to diffexchange in right|left directions
-nnoremap <Plug>(MergetoolDiffExchangeLeft) :<C-u>call <SID>DiffExchange('h')<CR>
-nnoremap <Plug>(MergetoolDiffExchangeRight) :<C-u>call <SID>DiffExchange('l')<CR>
+nnoremap <silent> <Plug>(MergetoolDiffExchangeLeft) :<C-u>call <SID>DiffExchange('h')<CR>
+nnoremap <silent> <Plug>(MergetoolDiffExchangeRight) :<C-u>call <SID>DiffExchange('l')<CR>
 " }}}

@@ -25,8 +25,16 @@ nnoremap <silent> <Plug>(MergetoolToggle) :<C-u>call mergetool#toggle()<CR>
 " h|<left> + no window on right = diffput to left win
 " l|<right> + window on left = diffget from left win
 " l|<right> + no window on left = diffput to right win
+" Same logic applies for vertical directions: 'j' and 'k'
+
+let s:directions = {
+      \ 'h': 'l',
+      \ 'l': 'h',
+      \ 'j': 'k',
+      \ 'k': 'j' }
+
 function s:DiffExchange(dir)
-  let oppdir = (a:dir ==# 'h') ? 'l' : 'h'
+  let oppdir = s:directions[a:dir]
 
   let winoppdir = s:FindWindowOnDir(oppdir)
   if (winoppdir != -1)
@@ -58,7 +66,15 @@ function s:FindWindowOnDir(dir)
   endif
 endfunction
 
-" <plug> mappings to diffexchange in right|left directions
+" Commands and <plug> mappings for diff exchange commands
+command! -nargs=0 MergetoolDiffExchangeLeft call s:DiffExchange('h')
+command! -nargs=0 MergetoolDiffExchangeRight call s:DiffExchange('l')
+command! -nargs=0 MergetoolDiffExchangeDown call s:DiffExchange('j')
+command! -nargs=0 MergetoolDiffExchangeUp call s:DiffExchange('k')
+
 nnoremap <silent> <Plug>(MergetoolDiffExchangeLeft) :<C-u>call <SID>DiffExchange('h')<CR>
 nnoremap <silent> <Plug>(MergetoolDiffExchangeRight) :<C-u>call <SID>DiffExchange('l')<CR>
+nnoremap <silent> <Plug>(MergetoolDiffExchangeDown) :<C-u>call <SID>DiffExchange('j')<CR>
+nnoremap <silent> <Plug>(MergetoolDiffExchangeUp) :<C-u>call <SID>DiffExchange('k')<CR>
+
 " }}}

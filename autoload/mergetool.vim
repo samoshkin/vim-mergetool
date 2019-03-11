@@ -115,7 +115,7 @@ endfunction " }}}
 function! mergetool#set_layout(layout) " {{{
   call s:ensure_in_mergemode()
 
-  if a:layout =~? '[^rlbw]'
+  if a:layout =~? '[^rlbm,]'
     throw "Unknown layout option: " . a:layout
   endif
 
@@ -127,6 +127,7 @@ function! mergetool#set_layout(layout) " {{{
         \ 'l': 'local',
         \ 'L': 'LOCAL' }
   let is_first_split = 1
+  let split_dir = 'vert rightbelow'
 
   if s:goto_win_with_merged_file()
     let l:_winstate = winsaveview()
@@ -134,15 +135,25 @@ function! mergetool#set_layout(layout) " {{{
 
   " For each char in layout, open split window and load revision
   for labbr in split(a:layout, '\zs')
-    vert rightbelow split
 
+    " ',' is to make next split horizontal
+    if labbr ==? ','
+      let split_dir='botright'
+      continue
+    endif
+
+    " Create next split, and reset split direction to vertical
+    execute split_dir . " split"
+    let split_dir = 'vert rightbelow'
+
+    " After first split is created, close all other windows
     if is_first_split
       wincmd o
       let is_first_split = 0
     endif
 
     " For merged file itself, just load its buffer
-    if labbr ==? 'w'
+    if labbr ==? 'm'
       execute "buffer " . s:mergedfile_bufnr
       continue
     endif

@@ -40,6 +40,23 @@ While 3-way diff paradigm is superior to 2-way diff for merging purposes, it doe
 - Forces you to pick up conflict side by directly editing conflict markers, instead of choosing change from left or right.
 - `:diffget` and `:diffput` Vim commands are convenient only when there're two split windows, otherwise they become ambiguous and you need to tell them the target buffer number, which is a real showstopper. No one wants to think on "What's the Vim's buffer number of the window on the right/left?", when you're already pulling your hair trying to resolve conflicts from long running "feature" branch.
 
+## Installation
+
+Use your favorite Vim plugin manager.
+
+Minimal working configuration using [vim-plug](https://github.com/junegunn/vim-plug).
+
+```vim
+set nocompatible
+filetype plugin indent on
+
+call plug#begin('~/.vim/plugged')
+  Plug 'samoshkin/vim-mergetool'
+call plug#end()
+
+let g:mergetool_layout = 'mr'
+let g:mergetool_prefer_revision = 'local'
+```
 
 ## Features
 
@@ -179,10 +196,10 @@ When exiting merge mode, if merge was unsuccessful, `vim-mergetool` would discar
 
 Unlike running as a `git mergetool`, `LOCAL`, `REMOTE` and `BASE` history revisions are not passed from the outside. In this mode, `vim-mergetool` extracts them from the numbered stages of Git index.
 
-```
-git cat-file -p :1:{file} > {file}.base
-git cat-file -p :2:{file} > {file}.local
-git cat-file -p :3:{file} > {file}.remote
+```bash
+$ git cat-file -p :1:{file} > {file}.base
+$ git cat-file -p :2:{file} > {file}.local
+$ git cat-file -p :3:{file} > {file}.remote
 ```
 
 **NOTE:** Therefore, It's assumed that Git merge is in progress, and `cwd` of running Vim instance is set to repository root dir.

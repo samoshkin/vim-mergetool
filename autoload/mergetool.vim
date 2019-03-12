@@ -260,22 +260,22 @@ function! s:remove_conflict_markers(pref_revision)
 
   " Command removes range of lines from the file
   " g/{start_marker}/, find start of the range by given marker
-  " +1,/{end_marker}-1, finds end of the range by given marker and selects contents between markers
-  let delete_pattern = 'g/%s/ +1,/%s/-1 delete _'
+  " .,/{end_marker}, finds end of the range by given marker
+  let delete_range = 'g/%s/ .,/%s/ delete _'
+  let delete_marker = 'g/%s/ delete _'
 
   if a:pref_revision ==# 'base'
-    execute printf(delete_pattern, s:markers['ours'], s:markers['base'])
-    execute printf(delete_pattern, s:markers['delimiter'], s:markers['theirs'])
+    execute printf(delete_range, s:markers['ours'], s:markers['base'])
+    execute printf(delete_range, s:markers['delimiter'], s:markers['theirs'])
   elseif a:pref_revision ==# 'local'
-    execute printf(delete_pattern, s:markers['base'], s:markers['theirs'])
+    execute printf(delete_marker, s:markers['ours'])
+    execute printf(delete_range, s:markers['base'], s:markers['theirs'])
   elseif a:pref_revision ==# 'remote'
-    execute printf(delete_pattern, s:markers['ours'], s:markers['delimiter'])
+    execute printf(delete_range, s:markers['ours'], s:markers['delimiter'])
+    execute printf(delete_marker, s:markers['theirs'])
   else
     throw "Not supported revision: " . a:pref_revision
   endif
-
-  " Delete conflict markers itself
-  execute printf('g/%s\|%s\|%s\|%s/ delete _', s:markers['ours'], s:markers['theirs'], s:markers['base'], s:markers['delimiter'])
 endfunction
 
 " Tells if file has conflict markers

@@ -133,6 +133,9 @@ function! mergetool#set_layout(layout) " {{{
     let l:_winstate = winsaveview()
   endif
 
+  " Before changing layout, turn off diff mode in all visible windows
+  windo diffoff
+
   " For each char in layout, open split window and load revision
   for labbr in split(a:layout, '\zs')
 

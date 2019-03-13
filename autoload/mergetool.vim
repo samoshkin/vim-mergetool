@@ -22,7 +22,8 @@ function! mergetool#start() "{{{
   " Remember original file properties
   let s:mergedfile_bufnr = bufnr('%')
   let s:mergedfile_name = expand('%')
-  let s:mergedfile_contents = system('cat ' . expand('%'))
+  let s:mergedfile_contents = join(getline(0, "$"), "\n") . "\n"
+  let s:mergedfile_fileformat = &fileformat
 
   " Detect if we're run as 'git mergetool' by presence of BASE|LOCAL|REMOTE buf names
   let s:run_as_git_mergetool = bufnr('BASE') != -1 &&
@@ -209,6 +210,7 @@ function! s:load_revision(revision)
     " Open new buffer, put merged file contents wiht conflict markers,
     " remove markers and pick up right revision
     enew
+    execute "setlocal fileformat=" . s:mergedfile_fileformat
     put = s:mergedfile_contents | 1delete _
     call s:remove_conflict_markers(a:revision)
     setlocal nomodifiable readonly buftype=nofile bufhidden=delete nobuflisted

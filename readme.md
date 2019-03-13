@@ -1,6 +1,6 @@
 # vim-mergetool
 
-Efficient way of using Vim as a Git mergetool
+Efficient way of using Vim as a Git mergetool. :cake: With `vim-mergetool` you can have your cake and eat it too.
 
 ## Overview
 

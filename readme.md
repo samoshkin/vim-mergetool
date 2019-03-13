@@ -42,6 +42,14 @@ While 3-way diff paradigm is superior to 2-way diff for merging purposes, it doe
 - Forces you to pick up conflict side by directly editing conflict markers, instead of choosing change from the left or the right.
 - `:diffget` and `:diffput` Vim commands are convenient only when there're two split windows, otherwise they become ambiguous and you need to tell them the target buffer number, which is a real showstopper. No one wants to think on "What's the Vim's buffer number of the window on the right/left?", when you're already pulling your hair trying to resolve conflicts from long running "feature" branch.
 
+## Alternative solutions
+
+- default `vimdiff` merge tool. Shows layout with 3 vertical splits: `LOCAL`, `REMOTE`, `BASE` revisions, and the horizontal split at the bottom with a `MERGED` file, containing raw conflict markers.
+- [vim-fugitive](https://github.com/tpope/vim-fugitive) `:Gdiff` command, which automatically detects conflict markers in a file and switches into 3-way diff. Shows 3 vertical splits: `LOCAL`, `REMOTE` revisions and `MERGED` file in the middle with raw conflict markers. See this [reddit comment](https://www.reddit.com/r/vim/comments/b0jjgw/github_samoshkinvimmergetool_efficient_way_of/eif6oio/) on difference between [vim-figutive] and this plugin.
+- [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts). Parses `MERGED` file and removes conflict markers to pick up one side of a conflict. Default to 2-split layout with `local` and `remote` revisions.
+- Drop using Vim as a mergetool. Use some GUI program, like [DiffMerge](https://sourcegear.com/diffmerge/) or [Kdiff3](http://kdiff3.sourceforge.net/). Better to use both though.
+
+
 ## Installation
 
 Use your favorite Vim plugin manager.
@@ -354,15 +362,6 @@ conflictStyle = diff3
 ```
 
 **[AS2]**: When using `vim-mergetool` from a running Vim instance, as opposite to running as a `git-mergetool`, it's assumed that `cwd` of running Vim instance is set to repository root dir, and that Git merge is in progress.
-
-
-## Alternative solutions
-
-- default `vimdiff` merge tool. Shows layout with 3 vertical splits: `LOCAL`, `REMOTE`, `BASE` revisions, and the horizontal split at the bottom with a `MERGED` file, containing raw conflict markers.
-- [vim-fugitive](https://github.com/tpope/vim-fugitive) `:Gdiff` command, which automatically detects conflict markers in a file and switches into 3-way diff. Shows 3 vertical splits: `LOCAL`, `REMOTE` revisions and `MERGED` file in the middle with raw conflict markers.
-- [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts). Parses `MERGED` file and removes conflict markers to pick up one side of a conflict. Default to 2-split layout with `local` and `remote` revisions.
-- Drop using Vim as a mergetool. Use some GUI program, like [DiffMerge](https://sourcegear.com/diffmerge/) or [Kdiff3](http://kdiff3.sourceforge.net/). Better is to use both though.
-
 
 ## Credits
 Was inspired by [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts).

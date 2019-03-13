@@ -22,7 +22,7 @@ function! mergetool#start() "{{{
   " Remember original file properties
   let s:mergedfile_bufnr = bufnr('%')
   let s:mergedfile_name = expand('%')
-  let s:mergedfile_contents = system('cat ' . expand('%'))
+  let s:mergedfile_contents = join(getline(0, "$"), "\n") . "\n"
 
   " Detect if we're run as 'git mergetool' by presence of BASE|LOCAL|REMOTE buf names
   let s:run_as_git_mergetool = bufnr('BASE') != -1 &&

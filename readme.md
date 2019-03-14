@@ -2,6 +2,7 @@
 
 Efficient way of using Vim as a Git mergetool. :cake: With `vim-mergetool` you can have your cake and eat it too.
 
+
 ## Overview
 
 `vim-mergetool` processes `MERGED` file and extracts `ours`, `theirs`, or `common` sides of a conflict by parsing conflict markers left by Git. Then it shows 2-way diff between `ours` and `theirs` versions, with raw conflict markers being already removed.
@@ -14,43 +15,9 @@ In a screenshot below, `MERGED` file is on the left with conflict markers alread
 
 Plus, to resolve the conflict you don't need to edit conflict markers directly - just pick either side of a conflict using `:diffget` and `:diffput` commands.
 
-So far, it's similar to what [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts) already does. But that's only the beginning...
+This plugin was initially inspired by [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts). Check out [how this plugin is different from existing solutions](#how-is-it-different-from-x).
 
-**Features**:
-- Flexible layouts. You're not limited to default 2-way diff layout. You can use 3-way diff layout, or even setup window of 4 splits. Both horizontal and vertical splits are supported, and mix thereof.
-- Toggle between layouts during merge. You can have several layouts and toggle between them during merge. For example, you're using 2-way diff by default, but sometimes you want to quickly recall what's the state of a diff in the `BASE` revision, but don't want to keep 3rd `BASE` split constantly opened.
-- Choose preferred conflict side. You can choose `ours`, `theirs` or `base` side of a conflict for `MERGED` file as a default, or work with raw conflict markers.
-- Conventional `LOCAL`, `REMOTE`, `BASE` history revisions are available to compare to as well.
-- Can be run as a `git mergetool`, or by opening a file with conflict markers from the running Vim instance.
-- Prompts whether merge was successful on quit. If not, rollbacks changes and report non-zero exit status code when run as a `git mergetool`.
-- Smart diff exchange commands. Tell direction of a window to `diffget` or `diffput` instead of specifying a buffer number. Especially handy for 3-way diffs. Not limited to merge conflict scenarios, can be used for regular diffs.
-- Can tell if we're in merge mode right now. Useful for showing some sort of indicator in a status line.
-
-
-## Why do I need it?
-Most merge tools use 3-way diff approach by showing several split windows, that include `LOCAL` revision (current branch), `REMOTE` revision (branch we're going to merge), `BASE` revision (common base ancestor), and working tree version of `MERGED` file with or without conflict markers.
-
-Here is the same merge scenario opened with a default `vimdiff` as a mergetool:
-![Default vimdiff mergetool](./screenshots/vimdiff_default_tool.png)
-
-While 3-way diff paradigm is superior to 2-way diff for merging purposes, it does not fit Vim well:
-
-**Disadvantages**:
-- When several revisions are compared at the same time (i.e `:diffthis` in all buffers), Vim highlights every diff between each of those files. Usually that means every possible change between BASE-LOCAL-REMOTE-MERGED files, including those which are not relevant to conflict resolution.
-- It highlights even those hunks, which were already automatically resolved by `git merge-file`. It distracts you from focusing purely on unresolved conflicts. Indeed, I don't want to care about already resolved conflicts.
-- Limited window width when three vertical splits are opened. Forces you to scroll horizontally, or wrap lines. Unless you have enough screen width, it's difficult to quickly grasp changes when window width is only ~50 columns or so. Usually, it's not easy to tweak predefined layout.
-- Forces you to pick up conflict side by directly editing conflict markers, instead of choosing change from the left or the right.
-- `:diffget` and `:diffput` Vim commands are convenient only when there're two split windows, otherwise they become ambiguous and you need to tell them the target buffer number, which is a real showstopper. No one wants to think on "What's the Vim's buffer number of the window on the right/left?", when you're already pulling your hair trying to resolve conflicts from long running "feature" branch.
-
-## Alternative solutions
-
-- default `vimdiff` merge tool. Shows layout with 3 vertical splits: `LOCAL`, `REMOTE`, `BASE` revisions, and the horizontal split at the bottom with a `MERGED` file, containing raw conflict markers.
-- [vim-fugitive](https://github.com/tpope/vim-fugitive) `:Gdiff` command, which automatically detects conflict markers in a file and switches into 3-way diff. Shows 3 vertical splits: `LOCAL`, `REMOTE` revisions and `MERGED` file in the middle with raw conflict markers. See this [reddit comment](https://www.reddit.com/r/vim/comments/b0jjgw/github_samoshkinvimmergetool_efficient_way_of/eif6oio/) on difference between [vim-figutive] and this plugin.
-- [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts). Parses `MERGED` file and removes conflict markers to pick up one side of a conflict. Default to 2-split layout with `local` and `remote` revisions.
-- Drop using Vim as a mergetool. Use some GUI program, like [DiffMerge](https://sourcegear.com/diffmerge/) or [Kdiff3](http://kdiff3.sourceforge.net/). Better to use both though.
-
-
-## Installation
+## Minimal working example (TL;DR)
 
 Use your favorite Vim plugin manager.
 
@@ -68,7 +35,62 @@ let g:mergetool_layout = 'mr'
 let g:mergetool_prefer_revision = 'local'
 ```
 
+In Vim, open a file with conflict markers, and start mergetool.
+
+
+```
+:MergetoolStart
+```
+
+`vim-mergetool` would show 2-way diff in a new tab with `$MERGED` file on the left. By default all conflicts are already resolved by picking up `ours/LOCAL` version. You don't need to edit raw conflict markers manually. Either leave hunk as is, or pick `theirs/REMOTE` version with `:diffget` from the right, or edit hunk manually.
+
+Once done, quit merge tool:
+
+```
+:MergetoolStop
+```
+
+There's a single `:MergetoolToggle` command can both start and stop merge mode. Plus, you can setup a key mapping to toggle merge mode:
+
+```vim
+nmap <leader>mt <plug>(MergetoolToggle)
+```
+
+This example only scratch's the surface of what `vim-mergetool` can do. Keep reading, if you need more features/customization.
+
+
+#### Conflict markers format
+
+**[ASSUMPTION]**: `vim-mergetool` expects conflict markers in a `MERGED` file to include common `base` ancestor version as well. This is called `diff3` conflict style.
+
+```
+" <<<<<<< HEAD
+" ours/local revision
+" ||||||| base
+" common base revision
+" =======
+" theirs/remote revision
+" >>>>>>> feature
+```
+
+If you get *"Conflict markers miss common base revision"* error message, put the following in your `~/.gitconfig` to use [diff3](https://git-scm.com/docs/git-config#Documentation/git-config.txt-mergeconflictStyle) conflict style as a default:
+
+```ini
+[merge]
+conflictStyle = diff3
+```
+
+
 ## Features
+
+- Flexible layouts. You're not limited to default 2-way diff layout. You can use 3-way diff layout, or even setup window of 4 splits. Both horizontal and vertical splits are supported, and mix thereof.
+- Toggle between layouts during merge. You can have several layouts and toggle between them during merge. For example, you're using 2-way diff by default, but sometimes you want to quickly recall what's the state of a diff in the `BASE` revision, but don't want to keep 3rd `BASE` split constantly opened.
+- Choose preferred conflict side. By default `ours` side is picked up. But you can choose `ours`, `theirs` or `base` side of a conflict for `MERGED` file as a default, or work with raw conflict markers.
+- Conventional `LOCAL`, `REMOTE`, `BASE` history revisions are available to compare to as well.
+- Can be run as a `git mergetool`, or by opening a file with conflict markers from the running Vim instance.
+- Prompts whether merge was successful on quit. If not, rollbacks changes and report non-zero exit status code when run as a `git mergetool`.
+- Smart diff exchange commands. Tell direction of a window to `diffget` or `diffput` instead of specifying a buffer number. Especially handy for 3-way diffs. Not limited to merge conflict scenarios, can be used for regular diffs.
+- Can tell if we're in merge mode right now. Useful for showing some sort of indicator in a status line.
 
 **NOTE**: `vim-mergetool` does not set up any key mappings for you. It justs exports a handful of commands and `<plug>` mappings. You're free to setup key mappings in your `vimrc` as you'd like.
 
@@ -215,8 +237,6 @@ You can setup a key mapping to toggle merge mode:
 nmap <leader>mt <plug>(MergetoolToggle)
 ```
 
-Upon entering merge mode, `vim-mergetool` would switch to a new tab, to avoid breaking your current window layout.
-
 When exiting merge mode, if merge was unsuccessful, `vim-mergetool` would discard changes to merged file and rollback to a buffer state as it were right before starting a merge.
 
 Unlike running as a `git mergetool`, `LOCAL`, `REMOTE` and `BASE` history revisions are not passed from the outside. In this mode, `vim-mergetool` extracts them from the numbered stages of Git index.
@@ -227,7 +247,7 @@ $ git cat-file -p :2:{file} > {file}.local
 $ git cat-file -p :3:{file} > {file}.remote
 ```
 
-**NOTE:** Therefore, It's assumed that Git merge is in progress, and `cwd` of running Vim instance is set to repository root dir.
+**ASSUMPTION:** Therefore, It's assumed that Git merge is in progress, and `cwd` of running Vim instance is set to repository root dir.
 
 
 ### Smart diff exchange commands
@@ -341,27 +361,26 @@ nnoremap <silent> <leader>q :QuitWindow<CR>
 ```
 
 
-## Assumptions
-**[AS1]**: Standard conflict markers include only `ours` and `theirs` version (default conflict style called "merge"). `vim-mergetool` expects conflict markers to include `common` base ancestor version as well:
+## How is it different from X?
+Most merge tools use 3-way diff approach by showing several split windows, that include `LOCAL` revision (current branch), `REMOTE` revision (branch we're going to merge), `BASE` revision (common base ancestor), and working tree version of `MERGED` file with or without conflict markers.
 
-```
-" <<<<<<< HEAD
-" ours/local revision
-" ||||||| base
-" common base revision
-" =======
-" theirs/remote revision
-" >>>>>>> feature
-```
+Here is the same merge scenario opened with a default `vimdiff` as a mergetool:
+![Default vimdiff mergetool](./screenshots/vimdiff_default_tool.png)
 
-Put following in your `~/.gitconfig` to use [diff3](https://git-scm.com/docs/git-config#Documentation/git-config.txt-mergeconflictStyle) conflict style as a default:
+  While 3-way diff paradigm is superior to 2-way diff for merging purposes, it does not fit Vim well:
 
-```ini
-[merge]
-conflictStyle = diff3
-```
+  **Disadvantages**:
+  - When several revisions are compared at the same time (i.e `:diffthis` in all buffers), Vim highlights every diff between each of those files. Usually that means every possible change between BASE-LOCAL-REMOTE-MERGED files, including those which are not relevant to conflict resolution.
+  - It highlights even those hunks, which were already automatically resolved by `git merge-file`. It distracts you from focusing purely on unresolved conflicts. Indeed, I don't want to care about already resolved conflicts.
+  - Limited window width when three vertical splits are opened. Forces you to scroll horizontally, or wrap lines. Unless you have enough screen width, it's difficult to quickly grasp changes when window width is only ~50 columns or so. Usually, it's not easy to tweak predefined layout.
+  - Forces you to pick up conflict side by directly editing conflict markers, instead of choosing change from the left or the right.
+  - `:diffget` and `:diffput` Vim commands are convenient only when there're two split windows, otherwise they become ambiguous and you need to tell them the target buffer number, which is a real showstopper. No one wants to think on "What's the Vim's buffer number of the window on the right/left?", when you're already pulling your hair trying to resolve conflicts from long running "feature" branch.
 
-**[AS2]**: When using `vim-mergetool` from a running Vim instance, as opposite to running as a `git-mergetool`, it's assumed that `cwd` of running Vim instance is set to repository root dir, and that Git merge is in progress.
+#### Existing solutions
 
-## Credits
-Was inspired by [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts).
+  - default `vimdiff` merge tool. Shows layout with 3 vertical splits: `LOCAL`, `REMOTE`, `BASE` revisions, and the horizontal split at the bottom with a `MERGED` file, containing raw conflict markers.
+  - [vim-fugitive](https://github.com/tpope/vim-fugitive) `:Gdiff` command, which automatically detects conflict markers in a file and switches into 3-way diff. Shows 3 vertical splits: `LOCAL`, `REMOTE` revisions and `MERGED` file in the middle with raw conflict markers. See this [reddit comment](https://www.reddit.com/r/vim/comments/b0jjgw/github_samoshkinvimmergetool_efficient_way_of/eif6oio/) on difference between [vim-figutive] and this plugin.
+  - [whiteinge/diffconflicts](https://github.com/whiteinge/diffconflicts). Parses `MERGED` file and removes conflict markers to pick up one side of a conflict. Default to 2-split layout with `local` and `remote` revisions. `vim-mergetool` uses the same idea, plus brings many additional features.
+  - [sjl/splice.vim](https://github.com/sjl/splice.vim). Haven't yet had experience with it.
+  - Drop using Vim as a mergetool. Use some GUI program, like [DiffMerge](https://sourcegear.com/diffmerge/) or [Kdiff3](http://kdiff3.sourceforge.net/). Better to use both Vim and some GUI tool as a backup though.
+

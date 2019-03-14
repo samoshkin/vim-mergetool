@@ -59,7 +59,7 @@ nmap <leader>mt <plug>(MergetoolToggle)
 This example only scratch's the surface of what `vim-mergetool` can do. Keep reading, if you need more features/customization.
 
 
-#### Conflict markers format
+### Conflict markers format
 
 **[ASSUMPTION]**: `vim-mergetool` expects conflict markers in a `MERGED` file to include common `base` ancestor version as well. This is called `diff3` conflict style.
 
@@ -80,6 +80,11 @@ If you get *"Conflict markers miss common base revision"* error message, put the
 conflictStyle = diff3
 ```
 
+If something goes absolutely wrong, you can always reset conflict markers in a file to their initial state. It's safe to do it only during ongoing merge, otherwise you'd overwrite file in a working tree with version from index.
+
+```
+git checkout --conflict=diff3 {file}
+```
 
 ## Features
 

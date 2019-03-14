@@ -154,11 +154,7 @@ To show usual `REMOTE`, `LOCAL`, `BASE` history revisions, use uppercase charact
 let g:mergetool_layout = 'LmR'
 ```
 
-Here you can spot the difference comparing against LOCAL/REMOTE branch tips versus picking up `ours` or `theirs` revision based on conflict markers in a `MERGED` file. You're getting diff highlighting even when there is no merge conflicts.
-
 By the way, this setup is pretty much same to what [vim-fugitive](https://github.com/tpope/vim-fugitive) `:Gdiff` does, except that conflict markers are already removed. You can use `g:mergetool_prefer_revision='unmodified'` to replicate vim-fugitive completely. Indeed, `vim-mergetool` is flexible enough to replicate any existing vim+merge solution.
-
-![3 way diff between LOCAL and REMOTE](./screenshots/LmR_3splits_layout.png)
 
 By default vertical splits are used. If you prefer working with horizontal splits:
 

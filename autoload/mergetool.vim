@@ -14,7 +14,15 @@ function! mergetool#start() "{{{
   " If file does not have conflict markers, it's a wrong target for mergetool
   if !s:has_conflict_markers()
     echohl WarningMsg
-    echo 'File does not have conflict markers'
+    echo "File does not have correct conflict markers"
+    echohl None
+    return
+  endif
+
+  " It's required to use diff3 conflict style, so markers include common base revision
+  if !s:has_conflict_markers_in_diff3_style()
+    echohl WarningMsg
+    echo "Conflict markers miss common base revision. Ensure you're using 'merge.conflictStyle=diff3' in your gitconfig"
     echohl None
     return
   endif
@@ -287,8 +295,11 @@ endfunction
 function! s:has_conflict_markers()
   return search(s:markers['ours']) != 0 &&
         \ search(s:markers['theirs']) != 0 &&
-        \ search(s:markers['base']) != 0 &&
         \ search(s:markers['delimiter']) != 0
+endfunction
+
+function s:has_conflict_markers_in_diff3_style()
+  return search(s:markers['base']) != 0
 endfunction
 
 " Discard all changes in buffer, and fill it with original merged file contents

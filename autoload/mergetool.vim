@@ -14,7 +14,7 @@ function! mergetool#start() "{{{
   " If file does not have conflict markers, it's a wrong target for mergetool
   if !s:has_conflict_markers()
     echohl WarningMsg
-    echo 'File does not have conflict markers'
+    echo 'File does not have conflict markers (must be diff3 style)'
     echohl None
     return
   endif

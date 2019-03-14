@@ -90,6 +90,7 @@ git checkout --conflict=diff3 {file}
 
 - Flexible layouts. You're not limited to default 2-way diff layout. You can use 3-way diff layout, or even setup window of 4 splits. Both horizontal and vertical splits are supported, and mix thereof.
 - Toggle between layouts during merge. You can have several layouts and toggle between them during merge. For example, you're using 2-way diff by default, but sometimes you want to quickly recall what's the state of a diff in the `BASE` revision, but don't want to keep 3rd `BASE` split constantly opened.
+- Customize layout splits as you like: resize, turn off syntax highlighting, turn off diff mode.
 - Choose preferred conflict side. By default `ours` side is picked up. But you can choose `ours`, `theirs` or `base` side of a conflict for `MERGED` file as a default, or work with raw conflict markers.
 - Conventional `LOCAL`, `REMOTE`, `BASE` history revisions are available to compare to as well.
 - Can be run as a `git mergetool`, or by opening a file with conflict markers from the running Vim instance.
@@ -197,7 +198,6 @@ let g:mergetool_layout = 'mr'
 :MergetoolToggleLayout LBR
 ```
 
-
 ![Switching layouts](./screenshots/toggle_layouts.png)
 
 In addition to commands, you can setup key mappings for your most common layouts:
@@ -205,6 +205,54 @@ In addition to commands, you can setup key mappings for your most common layouts
 ```vim
 nnoremap <silent> <leader>mb :call mergetool#toggle_layout('mr,b')<CR>
 ```
+
+### Advanced layout customization
+
+If you want to further tweak layout or change settings of individual splits, define the callback function, which is called when layout is changed.
+
+Example. When layout is `mr,b`, I want the `base` horizontal split to be pulled of a diff mode and have syntax highlighting enabled. Also, I want it to reduce it's height.
+
+```vim
+function s:on_mergetool_set_layout(split)
+  if a:split["layout"] ==# 'mr,b' && a:split["split"] ==# 'b'
+    set nodiff
+    set syntax=on
+
+    resize 15
+  endif
+endfunction
+
+let g:MergetoolSetLayoutCallback = function('s:on_mergetool_set_layout')
+```
+
+Callback is called for each split in the layout, with a split being passed as a callback argument.
+
+```
+{
+    'layout': 'mb,r',         # current layout
+    'split': 'b',             # current split
+    'filetype': 'javascript', # file type of MERGED file
+    'bufnr': 2,               # buffer number of current split
+    'winnr': 5                # window number of current split
+}
+```
+
+Example. I want to turn off syntax and spell checking highlighting for all splits, so it doesn't distracts me from diff highlighting.
+
+
+```vim
+function s:on_mergetool_set_layout(split)
+  set syntax=off
+  set nospell
+endfunction
+
+let g:MergetoolSetLayoutCallback = function('s:on_mergetool_set_layout')
+```
+
+Here's the end result:
+
+![Layout advanced customization](./screenshots/layout_advanced_customization.png)
+
 
 ### Running as a `git mergetool`
 

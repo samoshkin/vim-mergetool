@@ -1,7 +1,11 @@
 
+function s:noop(...)
+endfunction
+
 " Configuration settings
 let g:mergetool_layout = get(g:, 'mergetool_layout', 'wr')
 let g:mergetool_prefer_revision = get(g:, 'mergetool_prefer_revision', 'local')
+let g:MergetoolSetLayoutCallback = get(g:, 'MergetoolSetLayoutCallback', function('s:noop'))
 
 " {{{ Public exports
 
@@ -32,6 +36,7 @@ function! mergetool#start() "{{{
   let s:mergedfile_name = expand('%')
   let s:mergedfile_contents = join(getline(0, "$"), "\n") . "\n"
   let s:mergedfile_fileformat = &fileformat
+  let s:mergedfile_filetype = &filetype
 
   " Detect if we're run as 'git mergetool' by presence of BASE|LOCAL|REMOTE buf names
   let s:run_as_git_mergetool = bufnr('BASE') != -1 &&
@@ -128,6 +133,8 @@ function! mergetool#set_layout(layout) " {{{
     throw "Unknown layout option: " . a:layout
   endif
 
+  let splits = []
+
   let abbrevs = {
         \ 'b': 'base',
         \ 'B': 'BASE',
@@ -164,17 +171,30 @@ function! mergetool#set_layout(layout) " {{{
       let is_first_split = 0
     endif
 
-    " For merged file itself, just load its buffer
     if labbr ==? 'm'
+      " For merged file itself, just load its buffer
       execute "buffer " . s:mergedfile_bufnr
-      continue
+    else
+      silent call s:load_revision(abbrevs[labbr])
     endif
 
-    silent call s:load_revision(abbrevs[labbr])
+    call add(splits, {
+          \ 'layout': a:layout,
+          \ 'split': labbr,
+          \ 'filetype': s:mergedfile_filetype,
+          \ 'bufnr': bufnr(''),
+          \ 'winnr': winnr() })
   endfor
 
   let s:current_layout = a:layout
   windo diffthis
+
+  " Iterate over created splits and fire callback
+  for l:split in splits
+    execute "noautocmd " . l:split["winnr"] . "wincmd w"
+    call g:MergetoolSetLayoutCallback(l:split)
+  endfor
+
   if s:goto_win_with_merged_file() && exists('l:_winstate')
     call winrestview(l:_winstate)
   endif
@@ -222,6 +242,7 @@ function! s:load_revision(revision)
     put = s:mergedfile_contents | 1delete _
     call s:remove_conflict_markers(a:revision)
     setlocal nomodifiable readonly buftype=nofile bufhidden=delete nobuflisted
+    execute "setlocal filetype=" . s:mergedfile_filetype
     execute "file " . a:revision
   elseif a:revision ==# 'BASE' || a:revision ==# 'REMOTE' || a:revision ==# 'LOCAL'
 
@@ -234,6 +255,7 @@ function! s:load_revision(revision)
       enew
       call s:load_revision_from_index(a:revision)
       setlocal nomodifiable readonly buftype=nofile bufhidden=delete nobuflisted
+      execute "setlocal filetype=" . s:mergedfile_filetype
       execute "file " . a:revision
     endif
   else
@@ -311,7 +333,7 @@ endfunction
 " Tell if window was found
 function! s:goto_win_with_merged_file()
   let l:winnr = bufwinnr(s:mergedfile_bufnr)
-  execute bufwinnr(s:mergedfile_bufnr) "wincmd w"
+  execute "noautocmd " . bufwinnr(s:mergedfile_bufnr) . "wincmd w"
   return l:winnr != -1
 endfunction
 

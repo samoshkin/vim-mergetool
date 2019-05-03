@@ -3,7 +3,7 @@ function s:noop(...)
 endfunction
 
 " Configuration settings
-let g:mergetool_layout = get(g:, 'mergetool_layout', 'wr')
+let g:mergetool_layout = get(g:, 'mergetool_layout', 'mr')
 let g:mergetool_prefer_revision = get(g:, 'mergetool_prefer_revision', 'local')
 let g:MergetoolSetLayoutCallback = get(g:, 'MergetoolSetLayoutCallback', function('s:noop'))
 

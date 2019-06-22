@@ -315,13 +315,13 @@ endfunction
 
 " Tells if file has conflict markers
 function! s:has_conflict_markers()
-  return search(s:markers['ours']) != 0 &&
-        \ search(s:markers['theirs']) != 0 &&
-        \ search(s:markers['delimiter']) != 0
+  return search(s:markers['ours'], 'w') != 0 &&
+        \ search(s:markers['theirs'], 'w') != 0 &&
+        \ search(s:markers['delimiter'], 'w') != 0
 endfunction
 
 function s:has_conflict_markers_in_diff3_style()
-  return search(s:markers['base']) != 0
+  return search(s:markers['base'],'w') != 0
 endfunction
 
 " Discard all changes in buffer, and fill it with original merged file contents
